@@ -26,6 +26,3 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return self.is_staff
-
-    # def is_subscribe(self, user):
-    #     pass

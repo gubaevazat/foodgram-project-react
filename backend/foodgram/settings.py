@@ -90,6 +90,7 @@ THIRD_PARTY_APPS = [
     'djoser',
     'colorfield',
     'django_filters',
+    'django_cleanup',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS

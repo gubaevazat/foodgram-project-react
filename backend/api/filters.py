@@ -1,5 +1,4 @@
 from django_filters import rest_framework as filters
-from django.db.models import BooleanField, Case, Value, When
 
 from recipes.models import Ingredient, Recipe
 
@@ -18,11 +17,11 @@ class RecipeFilter(filters.FilterSet):
     author = filters.NumberFilter(field_name='author__id')
     tags = filters.CharFilter(field_name='tags__slug')
     is_favorited = filters.BooleanFilter(
-        field_name='favorites__user',
+        field_name='favorite_users__user',
         method='get_favorites'
     )
     is_in_shopping_cart = filters.BooleanFilter(
-        field_name='in_shopping_cart__user',
+        field_name='in_shopping_cart_users__user',
         method='get_favorites'
     )
 

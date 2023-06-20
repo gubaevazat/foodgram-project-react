@@ -16,10 +16,10 @@ class UserSerializer(serializers.UserSerializer):
                   'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return request.user.subscriptions.filter(subscription=obj).exists()
+        user = self.context.get('request').user
+        return (user.is_authenticated and user.subscriptions.filter(
+            subscription=obj
+        ).exists())
 
 
 class CreateUserSerializer(serializers.UserCreateSerializer):

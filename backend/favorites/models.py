@@ -6,22 +6,17 @@ from recipes.models import Recipe
 User = get_user_model()
 
 
-class FavoritesBase(models.Model):
+class Subscription(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='пользователь'
+        related_name='subscriptions',
+        verbose_name='подписчик'
     )
-
-    class Meta:
-        abstract = True
-
-
-class Subscription(FavoritesBase):
     subscription = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscriptions',
+        related_name='subscribers',
         verbose_name='подписка на автора',
     )
 
@@ -40,15 +35,21 @@ class Subscription(FavoritesBase):
         ]
 
 
-class Favorite(FavoritesBase):
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipes',
+        verbose_name='пользователь'
+    )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='favorite_users',
         verbose_name='рецепт',
     )
 
     class Meta:
-        default_related_name = 'favorites'
         verbose_name = 'избранные рецепты'
         verbose_name_plural = 'избранные рецепты'
         constraints = [
@@ -59,14 +60,26 @@ class Favorite(FavoritesBase):
         ]
 
 
-class ShoppingCart(FavoritesBase):
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='in_shopping_cart_recipes',
+        verbose_name='пользователь'
+    )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='in_shopping_cart_users',
         verbose_name='рецепт',
     )
 
     class Meta:
-        default_related_name = 'in_shopping_cart'
         verbose_name = 'список покупок'
         verbose_name_plural = 'список покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='check_unique_user_shopping_cart',
+            ),
+        ]
