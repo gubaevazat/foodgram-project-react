@@ -1,15 +1,18 @@
+from django.db.models import Sum
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
-from rest_framework import serializers, viewsets
-# from rest_framework.permissions import SAFE_METHODS
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import FoodgramPagination
 from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeSerializerGet, RecipeSerializerPost,
-                             ShoppingCartSerializer, TagSerializer)
-from recipes.models import Ingredient, Recipe, Tag
+                             RecipeSmallSerializer, ShoppingCartSerializer,
+                             TagSerializer)
+from recipes.models import Ingredient, Recipe, RecipeIngredients, Tag
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,21 +46,59 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return ShoppingCartSerializer
         return RecipeSerializerPost
 
+    def favorite_shopping_cart(self, request, pk=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {'user': user.pk, 'recipe': pk}
+        if request.method == 'DELETE':
+            favorite = self.get_serializer(data=data)
+            favorite.is_valid(raise_exception=True)
+            favorite.delete(data)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        favorite = self.get_serializer(data=data)
+        favorite.is_valid(raise_exception=True)
+        favorite.save()
+        serializer = RecipeSmallSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @action(
         detail=True,
-        methods=('post', 'delete'),
+        methods=('post', 'delete')
     )
     def favorite(self, request, pk=None):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == 'DELETE':
-            favorite = user.favorite_recipes.filter(recipe=recipe)
-            if favorite:
-                raise serializers.ValidationError(
-                    'Рецепт отсутствует в избранном.'
-                )
-            favorite.delete()
-        data = {'user': user.pk, 'recipe': pk}
-        favorite = data
+        return self.favorite_shopping_cart(request, pk)
 
-        return user
+    @action(
+        detail=True,
+        methods=('post', 'delete')
+    )
+    def shopping_cart(self, request, pk=None):
+        return self.favorite_shopping_cart(request, pk)
+
+    @action(
+        detail=False,
+        methods=('get',)
+    )
+    def download_shopping_cart(self, request):
+        user = request.user
+        ingredients = RecipeIngredients.objects.filter(
+            recipe__in_shopping_cart_users__user=user
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(
+            amount_total=Sum('amount')
+        ).order_by('-amount_total')
+        ingredient_template = '{}, количество-{} {}'
+        shopping_list = 'Список покупок: \n\n'
+        shopping_list += '\n'.join(
+            [
+                ingredient_template.format(
+                    ingredient['ingredient__name'],
+                    ingredient['amount_total'],
+                    ingredient['ingredient__measurement_unit']
+                ) for ingredient in ingredients
+            ])
+        return HttpResponse(shopping_list, headers={
+            'Content-Type': 'text/plain',
+            'Content-Disposition': 'attachment; filename="shopping_list.txt"',
+        })
