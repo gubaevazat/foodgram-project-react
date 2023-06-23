@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        load_dir = settings.BASE_DIR.parent / 'data'
+        load_dir = settings.BASE_DIR / 'data'
         with open(
             load_dir / 'ingredients.json',
             'r', encoding='utf-8'

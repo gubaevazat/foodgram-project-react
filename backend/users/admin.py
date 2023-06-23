@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
@@ -9,43 +9,35 @@ from users.mixins import StaffInAdminMixin
 User = get_user_model()
 
 
-class CustomUserChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        fields = ('username', 'email', 'first_name', 'last_name')
-
-
 @admin.register(User)
-class CustomUserAdmin(StaffInAdminMixin, admin.ModelAdmin):
+class CustomUserAdmin(StaffInAdminMixin, UserAdmin):
     add_fieldsets = (
         (
             None,
             {
                 'classes': ('wide',),
                 'fields': ('email', 'username', 'first_name',
-                           'last_name', 'password1', 'password2'),
+                           'last_name', 'password1', 'password2')
             }
         ),
     )
 
-    form = CustomUserChangeForm
     list_display = (
         'id',
         'email',
         'username',
         'first_name',
         'last_name',
-        'is_active'
     )
     list_display_links = ('id', 'email', 'username')
-    list_editable = ('is_active',)
     list_filter = ('email', 'first_name')
     search_fields = ('email', 'username', 'first_name', 'last_name')
 
     def get_fieldsets(self, request, obj=None):
-        fields = ('is_active', 'is_staff', 'is_superuser')
         user = request.user
         if not obj:
             return self.add_fieldsets
+        fields = ('is_active', 'is_staff', 'is_superuser')
         if user.is_staff and not user.is_superuser:
             fields = ('is_active',)
         return [
