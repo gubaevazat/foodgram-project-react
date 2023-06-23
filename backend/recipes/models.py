@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-
 User = get_user_model()
 
 
@@ -11,11 +10,11 @@ class Ingredient(models.Model):
     name = models.CharField(
         max_length=200,
         db_index=True,
-        verbose_name='название',
+        verbose_name='ингредиент',
     )
     measurement_unit = models.CharField(
         max_length=200,
-        verbose_name='название',
+        verbose_name='еденица измерения',
     )
 
     class Meta:
@@ -39,7 +38,7 @@ class Tag(models.Model):
         max_length=200,
         verbose_name='название',
     )
-    color = ColorField(samples=COLOR_PALETTE)
+    color = ColorField(samples=COLOR_PALETTE, verbose_name='цвет')
     slug = models.SlugField(
         max_length=200,
         unique=True,
@@ -49,6 +48,9 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'тэг'
         verbose_name_plural = 'тэги'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -87,8 +89,23 @@ class Recipe(models.Model):
         verbose_name_plural = 'рецепты'
         default_related_name = 'recipes'
 
+    def __str__(self):
+        return self.name
+
 
 class RecipeIngredients(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='рецепт'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='ингредиент'
+    )
     amount = models.PositiveSmallIntegerField(verbose_name='количество')
+
+    class Meta:
+        verbose_name = 'игредиент в рецепте'
+        verbose_name_plural = 'ингредиенты в рецепте'

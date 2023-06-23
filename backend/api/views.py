@@ -4,10 +4,12 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import FoodgramPagination
+from api.permissions import IsAuthor
 from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeSerializerGet, RecipeSerializerPost,
                              RecipeSmallSerializer, ShoppingCartSerializer,
@@ -38,13 +40,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ('list', 'retrieve'):
             return RecipeSerializerGet
         elif self.action == 'favorite':
             return FavoriteSerializer
         elif self.action == 'shopping_cart':
             return ShoppingCartSerializer
         return RecipeSerializerPost
+
+    def get_permissions(self):
+        if self.action in ('favorite', 'shopping_cart',
+                           'download_shopping_cart'):
+            self.permission_classes = (IsAuthenticated,)
+        elif self.action in ('partial_update', 'destroy'):
+            self.permission_classes = (IsAuthor,)
+        return super().get_permissions()
 
     def favorite_shopping_cart(self, request, pk=None):
         user = request.user

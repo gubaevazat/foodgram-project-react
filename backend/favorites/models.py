@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 from recipes.models import Recipe
 
@@ -34,6 +34,9 @@ class Subscription(models.Model):
             ),
         ]
 
+    def __str__(self):
+        return f'{self.user.username} подписан на {self.subscription.username}'
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(
@@ -59,6 +62,9 @@ class Favorite(models.Model):
             ),
         ]
 
+    def __str__(self):
+        return f'{self.user.username} рецепт {self.recipe.name} в избранном'
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -83,3 +89,6 @@ class ShoppingCart(models.Model):
                 name='check_unique_user_shopping_cart',
             ),
         ]
+
+    def __str__(self):
+        return f'{self.user.username} рецепт {self.recipe.name} в корзине'

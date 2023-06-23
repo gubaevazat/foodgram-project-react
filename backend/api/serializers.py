@@ -1,7 +1,8 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from django.contrib.auth import get_user_model
 
 from api.custom_fields import Base64ImageField
 from api.validators import (AuthorUserValidator, IngredientsValidator,
@@ -135,6 +136,7 @@ class RecipeSmallSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = fields
 
 
 class BaseFavoritesSerializator(serializers.ModelSerializer):
@@ -194,7 +196,7 @@ class SubscriptionSerializer(BaseFavoritesSerializator):
 
 class SubscriptionSerializerGet(serializers.ModelSerializer):
     """Сериализатор для возврата списка подписок."""
-    recipes = RecipeSmallSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.BooleanField(default=True)
     recipes_count = serializers.SerializerMethodField()
 
@@ -206,3 +208,13 @@ class SubscriptionSerializerGet(serializers.ModelSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        recipes_limit = int(
+            self.context['request'].query_params.get(
+                'recipes_limit',
+                settings.NUMBER_RECIPES_SUBSCRIPTIONS
+            ))
+        data = obj.recipes.all()[:recipes_limit]
+        serializer = RecipeSmallSerializer(data, many=True)
+        return serializer.data
