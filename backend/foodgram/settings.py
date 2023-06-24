@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-fo2()buac63difs=to^q+-j-u8hls%_j7vxa#^4cj*wd#ku2li
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://localhost:8000']
+CSRF_TRUSTED_ORIGINS = ['http://158.160.67.120', 'http://localhost', 'http://localhost:8000']
 
 AUTH_USER_MODEL = 'users.User'
 

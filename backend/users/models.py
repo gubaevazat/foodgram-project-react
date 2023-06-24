@@ -1,23 +1,22 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     first_name = first_name = models.CharField(
-        _("first name"),
         max_length=150,
+        verbose_name='имя'
     )
     last_name = models.CharField(
-        _("last name"),
         max_length=150,
+        verbose_name='фамилия'
     )
-    password = models.CharField(
-        _("password"),
-        max_length=150,
+    email = models.EmailField(
+        unique=True,
+        verbose_name='электронная почта'
     )
 
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
     class Meta:
         verbose_name = 'пользователь'

@@ -18,7 +18,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор модели Ingredient"""
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
         model = Ingredient
 
 
@@ -26,7 +26,7 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор модели Tag."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug')
         model = Tag
 
 
@@ -46,7 +46,7 @@ class RecipeIngredientsSerializerGet(serializers.ModelSerializer):
 class RecipeIngredientsSerializerPost(serializers.Serializer):
     """Сериализатор ингредиентов рецепта для создания/обновления """
     id = serializers.IntegerField()
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(min_value=1, max_value=10000)
 
 
 class RecipeSerializerGet(serializers.ModelSerializer):
@@ -94,24 +94,28 @@ class RecipeSerializerPost(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        exclude = ('pub_date',)
+        fields = ('ingredients', 'tags', 'image', 'author',
+                  'name', 'text', 'cooking_time')
         model = Recipe
         validators = [
             IngredientsValidator(),
 
         ]
 
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients_list = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
+    def create_ingredients(self, recipe, ingredients_list):
         for value in ingredients_list:
             ingredient = get_object_or_404(Ingredient, id=value.pop('id'))
             recipe.ingredients.add(
                 ingredient,
                 through_defaults=value
             )
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients_list = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        self.create_ingredients(recipe, ingredients_list)
         return recipe
 
     def update(self, instance, validated_data):
@@ -119,12 +123,7 @@ class RecipeSerializerPost(serializers.ModelSerializer):
         instance.tags.set(tags)
         ingredients_list = validated_data.pop('ingredients')
         instance.ingredients.clear()
-        for value in ingredients_list:
-            ingredient = get_object_or_404(Ingredient, id=value.pop('id'))
-            instance.ingredients.add(
-                ingredient,
-                through_defaults=value
-            )
+        self.create_ingredients(instance, ingredients_list)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
