@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:13.0-alpine
     container_name: db_postgres
+    restart: always
     volumes:
       - db_data:/var/lib/postgresql/data/
     env_file:
@@ -12,7 +13,6 @@ services:
   frontend:
     image: gubaevazat/frontend:latest
     container_name: frontend
-    restart: always
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -51,6 +51,3 @@ volumes:
   static_value:
   media_value:
   db_data:
-
-
-

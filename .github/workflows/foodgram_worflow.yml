@@ -65,7 +65,7 @@ jobs:
         uses: garygrossgarten/github-action-scp@release
         with:
           local: infra/
-          remote: ./
+          remote: foodgram/
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           privateKey: ${{ secrets.SSH_KEY}}
@@ -85,11 +85,12 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
+            cd foodgram/
             sudo docker compose stop
             sudo docker compose rm backend
             sudo docker compose rm frontend
-            sudo docker pull gubaevazat/frontend:latest
-            sudo docker pull gubaevazat/backend:latest
+            sudo docker pull -f gubaevazat/frontend:latest
+            sudo docker pull -f gubaevazat/backend:latest
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} > .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
