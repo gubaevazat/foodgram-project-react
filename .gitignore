@@ -133,3 +133,6 @@ dmypy.json
 
 #my ignore
 biblioteki.txt
+
+#media
+media/

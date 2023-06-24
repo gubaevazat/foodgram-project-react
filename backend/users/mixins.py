@@ -14,10 +14,11 @@ class StaffInAdminMixin(object):
         return True
 
     def has_change_permission(self, request, obj=None):
-        return not self.check_perm(request, obj) or request.user == obj
+        return (not self.check_perm(request, obj) or request.user == obj
+                or request.user.is_superuser)
 
     def has_delete_permission(self, request, obj=None):
-        return not self.check_perm(request, obj)
+        return not self.check_perm(request, obj) or request.user.is_superuser
 
     def has_view_permission(self, request, obj=None):
         return True
