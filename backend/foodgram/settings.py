@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = False
+DEBUG = os.getenv('DEBUG', default='False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS')
 CSRF_TRUSTED_ORIGINS = [
@@ -17,8 +17,8 @@ CSRF_TRUSTED_ORIGINS = [
 AUTH_USER_MODEL = 'users.User'
 
 USER_SERIALIZERS = {
-    'user': 'users.serializers.UserSerializer',
-    'user_create': 'users.serializers.CreateUserSerializer',
+    'user': 'api.serializers.UserSerializer',
+    'user_create': 'api.serializers.CreateUserSerializer',
 }
 
 NUMBER_RECIPES_SUBSCRIPTIONS = 5
